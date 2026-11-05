@@ -967,7 +967,10 @@ bool KeplerCompute::UpscaleInsteadOfNativeProgram() {
         // The images the program itself uses: textures it reads and the surface it stores to
         // through cbuf0 handles (Ocarina of Time's gameplay network reads +0xc0, writes +0xd0).
         // The input is the largest read image that the output upscales, the output's format first.
-        const auto [reads, stores] = NativeImageHandles(regs.code_loc.Address());
+        // Lowest handle first, so that among equally large images the one the table lists first
+        // wins, as in the search below: code order can reach an empty image first (the title screen).
+        auto [reads, stores] = NativeImageHandles(regs.code_loc.Address());
+        std::sort(reads.begin(), reads.end());
         input.reset();
         output.reset();
         for (const u32 store : stores) {
